@@ -3,7 +3,7 @@ import "../css/CodeFeedback.css";
 import axios from "axios";
 
 // Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:5000';
+axios.defaults.baseURL = 'http://localhost:4000';
 
 const CodeFeedback = () => {
   const [code, setCode] = useState("");
@@ -13,7 +13,7 @@ const CodeFeedback = () => {
 
   const handleRunCode = async () => {
     try {
-      const response = await fetch('http://localhost:5000/execute-code', {
+      const response = await fetch('http://localhost:4000/execute-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

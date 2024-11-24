@@ -1,44 +1,32 @@
 const axios = require('axios');
-const { GoogleGenerativeAI, GoogleAIFileManager } = require('@google/generative-ai'); // Adjust the path as necessary
 require('dotenv').config();
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
+const apiKey = "AIzaSyBdRliutqzanqmtA4B3bkL6PS8piaMOmrk";
 async function fetchFeedbackFromGeminiAPI(code, language) {
-  // ... existing code ...
+  console.log("Code:", code, "Language:", language);
+  const genAI = new GoogleGenerativeAI({ apiKey });  
+  const prompt = `Analyze this ${language} code and provide feedback on:
+  1. Time complexity
+  2. Space complexity
+  3. Code quality and best practices
+  4. Potential improvements
+  
+  Code:
+  ${code}`;
+  try {
+    // Make sure to adjust the method to generate content based on the API documentation
+    const model = await genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(prompt);
 
-  // // Replace the existing API key retrieval
-  // const genAI = new GoogleGenerativeAI(AIzaSyDzBdun-CFlwxRaqsAqK4WvOo4taOheZ3Y);
-  // const fileManager = new GoogleAIFileManager(AIzaSyDzBdun-CFlwxRaqsAqK4WvOo4taOheZ3Y);
-  const apiKey = AIzaSyDzBdun-CFlwxRaqsAqK4WvOo4taOheZ3Y; // Ensure you have this in your .env file
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const fileManager = new GoogleAIFileManager(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-  });
-
-  // Upload the file and specify a display name.
-  const uploadResponse = await fileManager.uploadFile("media/gemini.pdf", {
-    mimeType: "application/pdf",
-    displayName: "Gemini 1.5 PDF",
-  });
-
-  // View the response.
-  console.log(
-    `Uploaded file ${uploadResponse.file.displayName} as: ${uploadResponse.file.uri}`,
-  );
-
-  // Generate content using text and the URI reference for the uploaded file.
-  const result = await model.generateContent([
-    {
-      fileData: {
-        mimeType: uploadResponse.file.mimeType,
-        fileUri: uploadResponse.file.uri,
-      },
-    },
-    { text: "Can you summarize this document as a bulleted list?" },
-  ]);
-
-  // Output the generated text to the console
-  console.log(result.response.text());
-} 
+    // Check the response structure to access the text correctly
+    console.log("result",result)
+    // console.log("Feedback:", result.response ? result.response.text : result);
+    return result.response ? result.response.text : result;
+  } catch (error) {
+    console.error("Error fetching feedback:", error);
+    throw new Error('Failed to get code feedback');
+  }
+}
 
 module.exports = { fetchFeedbackFromGeminiAPI };

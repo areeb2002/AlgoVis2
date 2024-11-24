@@ -1,22 +1,35 @@
-const { exec } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-
-// Executes Java code
 function executeJavaCode(code) {
   return new Promise((resolve, reject) => {
     const tempFileName = 'Temp.java';
-    fs.writeFileSync(tempFileName, code);  // Write Java code to a temporary file
+    const classFileName = 'Temp.class';
 
-    // Compile and run the Java code
-    exec(`javac ${tempFileName} && java Temp`, (error, stdout, stderr) => {
-      fs.unlinkSync(tempFileName);  // Remove temporary file
-      if (error) {
-        reject(stderr || 'Error executing Java code');
-      } else {
-        resolve(stdout);  // Return execution output
-      }
-    });
+    try {
+      fs.writeFileSync(tempFileName, code); // Write Java code to a temporary file
+
+      // Compile Java code
+      exec(`javac ${tempFileName}`, (compileError, _, compileStderr) => {
+        if (compileError) {
+          fs.unlinkSync(tempFileName); // Cleanup source file
+          reject(compileStderr || 'Compilation error in Java code');
+          return;
+        }
+
+        // Execute compiled Java code
+        exec(`java Temp`, (execError, stdout, execStderr) => {
+          // Cleanup temporary files
+          fs.unlinkSync(tempFileName);
+          if (fs.existsSync(classFileName)) fs.unlinkSync(classFileName);
+
+          if (execError) {
+            reject(execStderr || 'Error executing Java code');
+          } else {
+            resolve(stdout);
+          }
+        });
+      });
+    } catch (err) {
+      reject('Error setting up Java execution: ' + err.message);
+    }
   });
 }
 
